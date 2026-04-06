@@ -26,6 +26,101 @@ pip install "markitdown[pptx]" Pillow --break-system-packages
 
 ---
 
+## Step 1.5: 참고 이미지 확인
+
+`docs/reference-images/` 디렉토리에 참고 이미지가 있는지 확인한다.
+
+```bash
+ls docs/reference-images/ 2>/dev/null
+```
+
+**이미지가 있는 경우 반드시 수행:**
+1. 디렉토리 내 모든 이미지를 읽는다 (png, jpg, pdf 등)
+2. 각 이미지에서 다음 요소를 분석한다:
+   - **색상 톤** — 주조색, 보조색, 강조색 추출
+   - **레이아웃 패턴** — 콘텐츠 배치, 여백, 그리드 구조
+   - **타이포그래피 스타일** — 제목/본문 크기 비율, 폰트 무게감
+   - **시각 요소** — 아이콘 스타일, 도형 사용 방식, 이미지 배치
+   - **전체 분위기** — 포멀/캐주얼, 미니멀/장식적
+3. 분석 결과를 Step 2 디자인 시스템 결정에 반영한다:
+   - 참고 이미지의 색상 톤과 가장 유사한 팔레트 선택 (또는 커스텀 팔레트 구성)
+   - 레이아웃 모티프를 참고 이미지의 배치 패턴에 맞춰 조정
+   - 전체 톤앤매너를 참고 이미지와 일관되게 유지
+
+**이미지가 없는 경우:** 이 단계를 건너뛰고 Step 1.6으로 진행.
+
+---
+
+## Step 1.6: 참고 PPT 확인 (master + sub 슬라이드)
+
+`docs/reference-pptxs/` 디렉토리에 참고 `.pptx` 파일이 있는지 확인한다.
+
+```bash
+ls docs/reference-pptxs/*.pptx 2>/dev/null
+```
+
+**파일이 있는 경우 반드시 수행 (시각 + 구조 양쪽):**
+
+### (A) 시각 레퍼런스 — 슬라이드 이미지화
+각 `.pptx`를 PDF→이미지로 변환하여 master(1번 슬라이드 = 타이틀/커버)와 sub(2번 이후 = 콘텐츠 레이아웃)를 분리 분석한다.
+
+```bash
+mkdir -p /home/claude/ref-pptx
+for f in docs/reference-pptxs/*.pptx; do
+  name=$(basename "$f" .pptx)
+  python scripts/office/soffice.py --headless --convert-to pdf --outdir /home/claude/ref-pptx "$f"
+  pdftoppm -jpeg -r 120 "/home/claude/ref-pptx/${name}.pdf" "/home/claude/ref-pptx/${name}-slide"
+done
+ls /home/claude/ref-pptx/*.jpg
+```
+
+- `*-slide-1.jpg` → **master 슬라이드** (커버/타이틀 톤·배경·타이포 기준으로 삼는다)
+- `*-slide-2.jpg` 이후 → **sub 슬라이드** (콘텐츠 레이아웃 패턴, 그리드, 카드 스타일의 표본)
+
+Read 툴로 위 이미지들을 직접 열어 Step 1.5와 동일한 5요소(색상 톤/레이아웃/타이포/시각 요소/분위기)를 분석하되, master와 sub를 구분하여 적용한다:
+- master 분석 → 새 PPT의 타이틀·마무리 슬라이드에 반영
+- sub 분석 → 본문 슬라이드의 레이아웃 모티프에 반영
+
+### (B) 구조 레퍼런스 — python-pptx로 master/layout 추출
+참고 PPT의 `slideMaster` 및 `slideLayouts`에서 배경색, placeholder 위치, 폰트, 도형 치수를 추출하여 코드 상수로 재사용한다.
+
+```bash
+python - <<'PY'
+from pptx import Presentation
+from pptx.util import Emu
+import glob, json, os
+
+def emu_to_in(v): return round(Emu(v).inches, 3) if v is not None else None
+
+for path in glob.glob("docs/reference-pptxs/*.pptx"):
+    prs = Presentation(path)
+    print(f"\n=== {os.path.basename(path)} ===")
+    print(f"slide_size: {emu_to_in(prs.slide_width)} x {emu_to_in(prs.slide_height)} in")
+
+    for mi, master in enumerate(prs.slide_masters):
+        print(f"\n[master {mi}] layouts={len(master.slide_layouts)}")
+        for li, layout in enumerate(master.slide_layouts):
+            phs = []
+            for ph in layout.placeholders:
+                phs.append({
+                    "idx": ph.placeholder_format.idx,
+                    "type": str(ph.placeholder_format.type),
+                    "name": ph.name,
+                    "x": emu_to_in(ph.left), "y": emu_to_in(ph.top),
+                    "w": emu_to_in(ph.width), "h": emu_to_in(ph.height),
+                })
+            print(f"  layout[{li}] name={layout.name!r} placeholders={json.dumps(phs, ensure_ascii=False)}")
+PY
+```
+
+출력된 치수/placeholder 좌표를 Step 4의 `COLORS`·레이아웃 상수와 슬라이드 빌더에 반영한다 (master = 타이틀 슬라이드 배치, sub layout들 = 콘텐츠 슬라이드 배치 템플릿).
+
+**주의:** 참고 PPT의 텍스트·이미지 콘텐츠는 복사하지 말 것. 톤·레이아웃·구조 메타데이터만 차용한다.
+
+**파일이 없는 경우:** 이 단계를 건너뛰고 Step 2로 진행.
+
+---
+
 ## Step 2: 디자인 시스템 결정
 
 `skills/design-system.md` 참조하여:

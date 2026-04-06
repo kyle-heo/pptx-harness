@@ -38,6 +38,7 @@
 ## 참조 자료
 
 - 브랜드 가이드: `docs/context/brand-guide.md`
+- 참고 이미지: `docs/reference-images/` (디자인 톤/레이아웃 참조용)
 - 데이터 소스: [링크 또는 파일명]
 - 참조 PPT: [있는 경우]
 

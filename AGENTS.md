@@ -11,7 +11,9 @@
 2. `SIGNALS.md` — 현재 품질 상태 및 과거 실패 패턴 확인
 3. `docs/specs/` — 요청된 PPT의 스펙 파일 확인
 4. `docs/context/` — 브랜드 가이드, 참조 자료 확인
-5. `skills/pptxgenjs-workflow.md` — 생성 워크플로우 실행
+5. `docs/reference-images/` — 참고 이미지 확인 (있는 경우 반드시 읽고 디자인에 반영)
+6. `docs/reference-pptxs/` — 참고 PPT 확인 (있는 경우 master/sub 슬라이드를 시각·구조 양쪽으로 반영)
+7. `skills/pptxgenjs-workflow.md` — 생성 워크플로우 실행
 
 ---
 
@@ -26,6 +28,8 @@
 | `skills/qa-protocol.md` | QA 및 시각적 검증 절차 | P0 |
 | `docs/specs/` | PPT별 스펙 (슬라이드 수, 목적, 대상) | P1 |
 | `docs/context/` | 브랜드 가이드, 레퍼런스 자료 | P1 |
+| `docs/reference-images/` | 참고 이미지 (디자인 톤/레이아웃 참조) | P1 |
+| `docs/reference-pptxs/` | 참고 PPT (master/sub 슬라이드 시각·구조 참조) | P1 |
 | `docs/plans/` | 실행 플랜 및 반복 작업 이력 | P1 |
 | `templates/` | 재사용 슬라이드 템플릿 코드 | P1 |
 | `gc-jobs/` | 품질 자동 검사 잡 | P0 |
@@ -37,6 +41,10 @@
 
 ```
 1. 스펙 확인 (docs/specs/)
+   ↓
+1.5. 참고 이미지 확인 (docs/reference-images/ — 있으면 읽고 톤/레이아웃 반영)
+   ↓
+1.6. 참고 PPT 확인 (docs/reference-pptxs/ — 있으면 master/sub 슬라이드 시각+구조 추출)
    ↓
 2. 디자인 시스템 선택 (skills/design-system.md)
    ↓
